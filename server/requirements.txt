@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+scanpy
+anndata
+helical
+numpy
+pandas
