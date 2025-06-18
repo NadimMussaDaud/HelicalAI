@@ -13,10 +13,6 @@ with ui.column().classes("items-center justify-center w-full"):
     ui.markdown("# Helical Workflow Interface").classes("text-center w-full")
 
 result_zone = ui.column().classes("w-full items-center")
-#spinner = ui.spinner(size='lg').props('color=primary').classes(
- #   'fixed top-1/2 left-1/2 z-50'
-#).bind_visibility_from(app.storage.user, 'loading')
-
 
 
 # App State
@@ -25,8 +21,13 @@ class State:
         self.dataset = None
         self.model = None
         self.batch_size = 10
+        self.loading = False
 
 state = State()
+
+spinner = ui.spinner(size='lg').props('color=black').classes(
+    'fixed top-1/2 left-1/2 z-50'
+).bind_visibility_from(state, 'loading')
 
 # Mock model functions (replace with your actual package)
 def set_model(model_name, batch_size):
@@ -45,17 +46,17 @@ tabs_zone = ui.column()
 # Initialize app
 
     
-with tabs_zone:
+with tabs_zone.classes("justify-center items-center w-full"):
     # Tabs for different workflow steps
     with ui.tabs() as tabs:
         ui.tab("Data Upload", icon="upload")
         ui.tab("Training", icon="model_training")
         ui.tab("Application", icon="apps")
-
-with ui.tab_panels(tabs, value="Data Upload"):
+all_panels = ui.tab_panels(tabs, value="Data Upload").classes("w-full")
+with all_panels:
     #1. Data Upload Tab
-    with ui.tab_panel("Data Upload"):
-        with ui.card().classes("w-full p-4 gap-4"):
+    with ui.tab_panel("Data Upload").classes("items-center justify-center"):
+        with ui.card().classes("p-4 gap-4"):
             # Option 1: Upload new file
             with ui.expansion("Upload New Data", icon="upload").classes("w-full"):
                 ui.upload(
@@ -84,8 +85,8 @@ with ui.tab_panels(tabs, value="Data Upload"):
                         icon="cloud_download").classes("w-full")
 
     # Tab 2: Model Training
-    with ui.tab_panel("Training"):
-        with ui.card().classes("w-full p-4 gap-4"):
+    with ui.tab_panel("Training").classes("items-center justify-center"):
+        with ui.card().classes("p-4 gap-4"):
             # Model Selection
             ui.label("Select Model Architecture").classes("text-lg font-medium")
             model_select = ui.select(
@@ -126,8 +127,7 @@ with ui.tab_panels(tabs, value="Data Upload"):
 
     # Tab 3: Application
     application_panel = ui.tab_panel("Application")
-    with application_panel:
-        #input_data = ui.input(label="Input for Prediction")
+    with application_panel.classes("items-center justify-center"):
         ui.label("Select Application").classes("text-lg font-medium")
 
         application_select = ui.select(
@@ -144,15 +144,13 @@ with ui.tab_panels(tabs, value="Data Upload"):
                 },
                 label="Helical Applications",
                 value="Cell type"
-            ).classes("w-full")
+            )
 
         ui.button("Run Application", on_click=lambda: run_application(application_select.value))
 
-# Output Log
-#output = ui.log(max_lines=10)
-
 async def load_dataset(name):
-    #app.storage.user['loading'] = True  # Show spinner
+    all_panels.style("display: none")  # Show application panel
+    state.loading = True  # Show spinner
 
     # Replace with your dataset loading logic
     state.dataset = name
@@ -162,9 +160,12 @@ async def load_dataset(name):
         ui.notify(f"Failed to load dataset: {response.text}", type="negative")
     else:
         ui.notify(f"Successfully loaded dataset: {response.text}")
-    #app.storage.user['loading'] = False  # Hide spinner
+    state.loading = False  # Hide spinner
+    all_panels.style("display: flex")  # Show application panel
 
 async def handle_upload(e):
+    all_panels.style("display: none")  # Show application panel
+    state.loading = True  # Show spinner
     file = e.content  # arquivo em memória (BytesIO)
     filename = e.name
     # Enviar manualmente para o backend
@@ -176,6 +177,9 @@ async def handle_upload(e):
         state.dataset = filename  # Update state with the uploaded filename
     else:
         ui.notify(f'Failed to upload {filename}', type='negative')
+    state.loading = False  # Hide spinner
+    all_panels.style("display: flex")  # Show application panel
+
 
 def plot_results(data):
         result_zone.clear()  # Clear previous results
