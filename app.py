@@ -1,12 +1,18 @@
-from nicegui import ui, app
+from nicegui import ui
 import pandas as pd
-from io import StringIO
 import requests
 import httpx
+import matplotlib.pyplot as plt
+import seaborn as sns
+import base64
+import io
 
 url = "http://localhost:8000/dataset"
 
+with ui.column().classes("items-center justify-center w-full"):
+    ui.markdown("# Helical Workflow Interface").classes("text-center w-full")
 
+result_zone = ui.column().classes("w-full items-center")
 #spinner = ui.spinner(size='lg').props('color=primary').classes(
  #   'fixed top-1/2 left-1/2 z-50'
 #).bind_visibility_from(app.storage.user, 'loading')
@@ -16,32 +22,30 @@ url = "http://localhost:8000/dataset"
 # App State
 class State:
     def __init__(self):
-        self.input_data = None
         self.dataset = None
         self.model = None
+        self.batch_size = 10
 
 state = State()
 
 # Mock model functions (replace with your actual package)
-def train_model(input_data, model_name, epochs, lr):
-    if state.input_data is None:
-        ui.notify("No data loaded! Upload data first.", type="negative")
+def set_model(model_name, batch_size):
+    state.model = model_name
+    state.batch_size = batch_size
+    ui.notify(f"Model set to {model_name} with batch size {batch_size}", type="success")
+    if state.dataset is None:
+        ui.notify("No data loaded! Upload data!", type="negative")
         return
     if state.model is None:
         ui.notify("No model trained! Train a model first.", type="negative")
         return
-    return f"Model trained with {model_name=}, {epochs=}, {lr=}."
 
-def predict_model(input_data):
-    if state.model is None:
-        ui.notify("No model trained! Train a model first.", type="negative")
-        return
-    return f"Prediction for input: {input_data} (based on {state.model})"
+tabs_zone = ui.column()
 
 # Initialize app
-with ui.column().classes("items-center"):
-    ui.markdown("# Helical Workflow Interface")
 
+    
+with tabs_zone:
     # Tabs for different workflow steps
     with ui.tabs() as tabs:
         ui.tab("Data Upload", icon="upload")
@@ -61,7 +65,7 @@ with ui.tab_panels(tabs, value="Data Upload"):
                     on_upload=lambda e: handle_upload(e),
                 ).classes("w-full")
                 
-                ui.button("Preview Uploaded Data", on_click=lambda: preview_data(uploaded_file))
+                #ui.button("Preview Uploaded Data", on_click=lambda: preview_data(uploaded_file))
             
             # Option 2: Select existing dataset
             with ui.expansion("Use Existing Dataset", icon="dataset").classes("w-full"):
@@ -112,8 +116,8 @@ with ui.tab_panels(tabs, value="Data Upload"):
                 ui.space()
                 
                 train_btn = ui.button(
-                    "Train Model", 
-                    on_click=lambda: train_model(
+                    "Set Model", 
+                    on_click=lambda: set_model(
                         model_select.value,
                         batch_size.value
                     ),
@@ -121,11 +125,12 @@ with ui.tab_panels(tabs, value="Data Upload"):
                 )
 
     # Tab 3: Application
-    with ui.tab_panel("Application"):
+    application_panel = ui.tab_panel("Application")
+    with application_panel:
         #input_data = ui.input(label="Input for Prediction")
         ui.label("Select Application").classes("text-lg font-medium")
 
-        model_select = ui.select(
+        application_select = ui.select(
                 options={
                     "Cell type": "Cell type Annotation prediction",
                     "Cell type - fine tuning": "Cell type Annotation prediction (fine-tuning)", 
@@ -141,24 +146,10 @@ with ui.tab_panels(tabs, value="Data Upload"):
                 value="Cell type"
             ).classes("w-full")
 
-        ui.button("Run Application", on_click=lambda: run_application())
+        ui.button("Run Application", on_click=lambda: run_application(application_select.value))
 
 # Output Log
 #output = ui.log(max_lines=10)
-
-def preview_data(uploaded_file):
-    if not uploaded_file.content:
-        ui.notify("No file uploaded!", type="negative")
-        return
-    data = pd.read_csv(StringIO(uploaded_file.content.read().decode()))
-    output.push(f"Data Preview:\n{data.head()}")
-
-def train_and_show(param1, param2):
-    # Simulate model training
-    result = train_model(pd.DataFrame(), param1, param2)
-    output.push(result)
-    ui.notify("Model trained successfully!")
-
 
 async def load_dataset(name):
     #app.storage.user['loading'] = True  # Show spinner
@@ -182,14 +173,51 @@ async def handle_upload(e):
         response = await client.post('http://localhost:8000/upload_file', files=files)
     if response.status_code == 200:
         ui.notify(f'File {filename} uploaded successfully!')
+        state.dataset = filename  # Update state with the uploaded filename
     else:
         ui.notify(f'Failed to upload {filename}', type='negative')
 
+def plot_results(data):
+        result_zone.clear()  # Clear previous results
+        cm = pd.DataFrame(data)
+        # Plot the confusion matrix
+        fig, ax = plt.subplots(figsize=(12, 12))
+        sns.heatmap(cm, annot=True, fmt=".2f", cmap="Blues", ax=ax)
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png")
+        plt.close(fig)
+        buf.seek(0)
+        img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+        with result_zone:
+            ui.markdown("## Results").classes("text-lg font-medium")
+            # Display the image
+            ui.image(f'data:image/png;base64,{img_base64}').style("max-width: 100%; height: auto;").classes("w-full")
 
-def run_application():
+async def run_application(application_name):
+    tabs_zone.style("display: none")  # Hide tabs during processing
+    application_panel.style("display: none")  # Show application panel
     # Simulate application logic
-    ##
-    result = run_model("trained_model", state.input_data)
-    output.push(f"Application Result: {result}")
+    
+    if state.model is None:
+        ui.notify("No model set! Please set a model first.", type="negative")
+        return
+    if state.dataset is None:
+        ui.notify("No dataset loaded! Please upload a dataset first.", type="negative")
+        return
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8000/run",
+            json={
+                "model_name": state.model,
+                "application_name": application_name,
+                "dataset_name": state.dataset,
+                "batch_size": state.batch_size
+            }
+        )
+    if response.status_code == 200:
+        plot_results(response.json())
+    
 
+   
 ui.run(title="Model Workflow", port=8080)

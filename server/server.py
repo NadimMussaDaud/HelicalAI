@@ -1,18 +1,22 @@
+import httpx
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
-import scanpy as sc
-import tempfile
+from helical.utils import get_anndata_from_hf_dataset
 import os
 import logging
 import warnings
 from datasets import load_dataset
-from helical.utils import get_anndata_from_hf_dataset
-
 
 from pydantic import BaseModel
 
 class Dataset(BaseModel):
     name: str
+
+class State(BaseModel):
+    model_name: str
+    batch_size: int
+    dataset_name: str
+    application_name: str
 
 
 logging.getLogger().setLevel(logging.ERROR)
@@ -20,23 +24,111 @@ logging.getLogger().setLevel(logging.ERROR)
 warnings.filterwarnings("ignore")
 
 app = FastAPI()
-"""
-@app.post("/annotate")
-async def annotate(file: UploadFile = File(...)):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
-        tmp.write(await file.read())
-        tmp_path = tmp.name
 
-    # Read expression matrix and annotate with Helical
-    adata = sc.read_csv(tmp_path)
-    os.remove(tmp_path)
+@app.post("/run")
+async def run_application(request: State):
+    """
+    Run the application.
+    """
+    response = None
+    match request.application_name:
+        case "Cell type":
+            print("Running Cell type application")
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.post(
+                    "http://localhost:8001/predict",
+                    json={
+                        "model_name": request.model_name,
+                        "dataset_name": request.dataset_name,
+                        "batch_size": request.batch_size,
+                    }
+                )
+        case "Cell type - fine tuning":
+            async with httpx.AsyncClient(timeout=60) as client:
+                response = await client.post(
+                    "http://localhost:8002/run",
+                    json={
+                        "model_name": request.model_name,
+                        "dataset_name": request.dataset_name,
+                        "batch_size": request.batch_size,
+                    },
+                )
+        case "Cell Gene Embeddings":
+            async with httpx.AsyncClient(timeout=1200) as client:
+                response = await client.post(
+                    "http://localhost:8003/run",
+                    json={
+                        "model_name": request.model_name,
+                        "dataset_name": request.dataset_name,
+                        "batch_size": request.batch_size,
+                    },
+                )
+        case "Helix-mRNA":
+            async with httpx.AsyncClient(timeout=1200) as client:
+                response = await client.post(
+                    "http://localhost:8004/run",
+                    json={
+                        "model_name": request.model_name,
+                        "dataset_name": request.dataset_name,
+                        "batch_size": request.batch_size,
+                    },
+                )
+        case "Genegpt":
+            async with httpx.AsyncClient(timeout=1200) as client:
+                response = await client.post(
+                    "http://localhost:8005/run",
+                    json={
+                        "model_name": request.model_name,
+                        "dataset_name": request.dataset_name,
+                        "batch_size": request.batch_size,
+                    },
+                )
+        case "Geneformer VS TranscriptFormer":
+            async with httpx.AsyncClient(timeout=1200) as client:
+                response = await client.post(
+                    "http://localhost:8006/run",
+                    json={
+                        "model_name": request.model_name,
+                        "dataset_name": request.dataset_name,
+                        "batch_size": request.batch_size,
+                    },
+                )
+        case "HyenaDNA - Fine Tuning":
+            async with httpx.AsyncClient(timeout=1200) as client:
+                response = await client.post(
+                    "http://localhost:8007/run",
+                    json={
+                        "model_name": request.model_name,
+                        "dataset_name": request.dataset_name,
+                        "batch_size": request.batch_size,
+                    },
+                )
+        case "HyenaDNA - Inference":
+            async with httpx.AsyncClient(timeout=1200) as client:
+                response = await client.post(
+                    "http://localhost:8008/run",
+                    json={
+                        "model_name": request.model_name,
+                        "dataset_name": request.dataset_name,
+                        "batch_size": request.batch_size,
+                    },
+                )
+        case "Evo 2":
+            async with httpx.AsyncClient(timeout=1200) as client:
+                response = await client.post(
+                    "http://localhost:8009/run",
+                    json={
+                        "model_name": request.model_name,
+                        "dataset_name": request.dataset_name,
+                        "batch_size": request.batch_size,
+                    },
+                )
+        case _:
+            pass
 
-    annotated = annotate_cell_types(adata)
+    # Placeholder for application logic
+    return JSONResponse(content=response.json())
 
-    # Return summary of predicted cell types
-    summary = annotated.obs["predicted_cell_type"].value_counts().to_dict()
-    return JSONResponse(content={"annotation_summary": summary})
-"""
 
 @app.post("/dataset")
 async def dataset(request: Dataset):
