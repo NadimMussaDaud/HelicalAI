@@ -16,4 +16,4 @@ RUN pip install \
 COPY . .
 
 EXPOSE 8006
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8006"]
+CMD ["uvicorn", "service3:app", "--host", "0.0.0.0", "--port", "8006"]
