@@ -183,19 +183,37 @@ async def handle_upload(e):
 
 def plot_results(data):
         result_zone.clear()  # Clear previous results
-        cm = pd.DataFrame(data)
-        # Plot the confusion matrix
-        fig, ax = plt.subplots(figsize=(12, 12))
-        sns.heatmap(cm, annot=True, fmt=".2f", cmap="Blues", ax=ax)
-        buf = io.BytesIO()
-        plt.savefig(buf, format="png")
-        plt.close(fig)
-        buf.seek(0)
-        img_base64 = base64.b64encode(buf.read()).decode("utf-8")
-        with result_zone:
-            ui.markdown("## Results").classes("text-lg font-medium")
-            # Display the image
-            ui.image(f'data:image/png;base64,{img_base64}').style("max-width: 100%; height: auto;").classes("w-full")
+        match state.application:
+            case "Cell type":
+                # Assuming data is a DataFrame with columns as cell types and rows as samples
+                cm = pd.DataFrame(data)
+                # Plot the confusion matrix
+                fig, ax = plt.subplots(figsize=(12, 12))
+                sns.heatmap(cm, annot=True, fmt=".2f", cmap="Blues", ax=ax)
+                buf = io.BytesIO()
+                plt.savefig(buf, format="png")
+                plt.close(fig)
+                buf.seek(0)
+                img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+                with result_zone:
+                    ui.markdown("## Results").classes("text-lg font-medium")
+                    # Display the image
+                    ui.image(f'data:image/png;base64,{img_base64}').style("max-width: 100%; height: auto;").classes("w-full")
+            case "HyenaDNA - Inference":
+                plt.figure(figsize=(10,7))
+                sns.heatmap(cm, annot=True, fmt='d')
+                plt.xlabel('Predicted')
+                plt.ylabel('Truth')
+                buf = io.BytesIO()
+                plt.savefig(buf, format="png")
+                plt.close()
+                buf.seek(0)
+                img_base64 = base64.b64encode(buf.read()).decode("utf-8")
+                with result_zone:
+                    ui.markdown("## Results").classes("text-lg font-medium")
+                    # Display the image
+                    ui.image(f'data:image/png;base64,{img_base64}').style("max-width: 100%; height: auto;").classes("w-full")
+            
 
 async def run_application(application_name):
     tabs_zone.style("display: none")  # Hide tabs during processing

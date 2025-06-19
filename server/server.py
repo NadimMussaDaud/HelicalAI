@@ -84,14 +84,14 @@ async def run_application(request: State):
                     },
                 )
         case "Geneformer VS TranscriptFormer":
-            async with httpx.AsyncClient(timeout=1200) as client:
+            async with httpx.AsyncClient(timeout=60) as client:
                 response = await client.post(
-                    "http://localhost:8006/run",
+                    "http://localhost:8006/predict",
                     json={
                         "model_name": request.model_name,
                         "dataset_name": request.dataset_name,
                         "batch_size": request.batch_size,
-                    },
+                    }
                 )
         case "HyenaDNA - Fine Tuning":
             async with httpx.AsyncClient(timeout=1200) as client:
@@ -104,14 +104,14 @@ async def run_application(request: State):
                     },
                 )
         case "HyenaDNA - Inference":
-            async with httpx.AsyncClient(timeout=1200) as client:
+            async with httpx.AsyncClient(timeout=60) as client:
                 response = await client.post(
-                    "http://localhost:8008/run",
+                    "http://localhost:8002/predict",
                     json={
                         "model_name": request.model_name,
                         "dataset_name": request.dataset_name,
                         "batch_size": request.batch_size,
-                    },
+                    }
                 )
         case "Evo 2":
             async with httpx.AsyncClient(timeout=1200) as client:

@@ -1,7 +1,9 @@
 fastapi
 uvicorn
-scanpy
-anndata
+logging
+warnings
+pydantic
+datasets
+os
 helical
-numpy
-pandas
+httpx
