@@ -8,7 +8,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Install Python packages directly
-RUN pip install --no-cache-dir \
+RUN pip install \
     fastapi==0.109.1 \
     uvicorn==0.27.0 \
     pandas==2.1.4

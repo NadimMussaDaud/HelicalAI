@@ -8,7 +8,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Install Python dependencies
-RUN pip install --no-cache-dir \
+RUN pip install \
     fastapi==0.109.1 \
     uvicorn==0.27.0 \
     pydantic==2.6.1

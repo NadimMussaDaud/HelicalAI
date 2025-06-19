@@ -1,7 +1,7 @@
 import httpx
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
-from helical.utils import get_anndata_from_hf_dataset
+#from helical.utils import get_anndata_from_hf_dataset
 import os
 import logging
 import warnings
@@ -143,7 +143,7 @@ async def dataset(request: Dataset):
     """
     dataset = load_dataset(request.name, split="train[:10%]", trust_remote_code=True, download_mode="reuse_cache_if_exists")
     labels = dataset["LVL1"]
-    ann_data = get_anndata_from_hf_dataset(dataset)
+    #ann_data = get_anndata_from_hf_dataset(dataset)
 
     return JSONResponse(content={"message": "Dataset loaded successfully", "labels": labels})
 
