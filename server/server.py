@@ -144,7 +144,7 @@ async def dataset(request: Dataset):
     dataset = load_dataset(request.name, split="train[:10%]", trust_remote_code=True, download_mode="reuse_cache_if_exists")
     labels = dataset["LVL1"]
     #ann_data = get_anndata_from_hf_dataset(dataset)
-
+    print("Entered dataset from server")
     return JSONResponse(content={"message": "Dataset loaded successfully", "labels": labels})
 
 
