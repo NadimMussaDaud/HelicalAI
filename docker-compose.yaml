@@ -14,8 +14,6 @@ services:
       - /app/node_modules  # Isolate node dependencies
 
   main_server:
-    network_mode: "host"  # Bypass Docker networking
-    privileged: true 
     build: ./server
     ports:
       - "8000:8000"

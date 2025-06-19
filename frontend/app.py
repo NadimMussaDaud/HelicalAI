@@ -160,9 +160,9 @@ async def load_dataset(name):
     async with httpx.AsyncClient(timeout=60) as client:
         response = await client.post(url, json={"name": name})
     if response.status_code != 200:
-        ui.notify(f"Failed to load dataset: {response.text}", type="negative")
+        ui.notify(f"Failed to load dataset", type="negative")
     else:
-        ui.notify(f"Successfully loaded dataset: {response.text}")
+        ui.notify(f"Successfully loaded dataset")
     state.loading = False  # Hide spinner
     all_panels.style("display: flex")  # Show application panel
 

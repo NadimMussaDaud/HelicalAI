@@ -142,12 +142,12 @@ async def dataset(request: Dataset):
     """
     Load a dataset pre-defined.
     """
-    time.sleep(60)
+    time.sleep(20)
     #dataset = load_dataset(request.name, split="train[:10%]", trust_remote_code=True, download_mode="reuse_cache_if_exists",  cache_dir="/cache/huggingface")
     #labels = dataset["LVL1"]
     #ann_data = get_anndata_from_hf_dataset(dataset)
     
-    return JSONResponse(content={"message": "Dataset loaded successfully", "labels": labels})
+    return JSONResponse(content={"message": "Dataset loaded successfully"})
 
 
 @app.post("/upload_file")
