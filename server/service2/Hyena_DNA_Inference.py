@@ -21,7 +21,7 @@ async def predict(request: Dataset):
     print(request.dataset_name)
 
 
-    return JSONResponse(content=data.to_json())
+    return JSONResponse(content=data)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8002)

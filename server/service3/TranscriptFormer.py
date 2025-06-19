@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 import uvicorn
 from pydantic import BaseModel
+import pandas as pd
+import numpy as np
+from sklearn.cluster import KMeans
 
 app = FastAPI()
 
@@ -121,6 +124,9 @@ embeddings = [
     [1.34668946, 13.4881706]
 ]
 
+embeddings = np.array(embeddings)
+
+labels = ["ERYTHROID", "STROMA", "MYELOID", "LYMPHOID", "PROGENITOR", "MK"]
 
 
 
@@ -130,8 +136,20 @@ async def predict(request: Dataset):
     print(request.model_name)
     print(request.dataset_name)
 
+    kmeans = KMeans(n_clusters=6, random_state=42)
+    clusters = kmeans.fit_predict(embeddings)
 
-    return JSONResponse(embeddings)
+    # Create a DataFrame for analysis
+    df = pd.DataFrame({
+        'x': embeddings[:, 0],
+        'y': embeddings[:, 1],
+        'Cell Type': [labels[i] for i in clusters]  # Assigns one of 6 labels to each of 108 points
+    })
+    
+    return {
+        "data": df.to_dict(orient='records'),  # List of {x, y, Cell Type} dictionaries
+        "labels": df['Cell Type'].values.tolist()  # List of unique labels
+    }
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8006)

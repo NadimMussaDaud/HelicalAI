@@ -21,6 +21,7 @@ result_zone = ui.column().classes("w-full items-center")
 class State:
     def __init__(self):
         self.dataset = None
+        self.application = None
         self.model = None
         self.batch_size = 10
         self.loading = False
@@ -135,14 +136,14 @@ with all_panels:
         application_select = ui.select(
                 options={
                     "Cell type": "Cell type Annotation prediction",
-                    "Cell type - fine tuning": "Cell type Annotation prediction (fine-tuning)", 
-                    "Cell Gene Embeddings": "Cell Gene CLS Embeddings Generation",
-                    "Helix-mRNA": "Helix",
-                    "Genegpt": "GeneGPT sample run",
+                    #"Cell type - fine tuning": "Cell type Annotation prediction (fine-tuning)", 
+                    #"Cell Gene Embeddings": "Cell Gene CLS Embeddings Generation",
+                    #"Helix-mRNA": "Helix",
+                    #"Genegpt": "GeneGPT sample run",
                     "Geneformer VS TranscriptFormer": "Comparison of Geneformer and TranscriptFormer",
-                    "HyenaDNA - Fine Tuning": "HyenaDNA (fine-tuning)",
-                    "HyenaDNA - Inference": "HyenaDNA (inference)",
-                    "Evo 2": "Evo 2"
+                    #"HyenaDNA - Fine Tuning": "HyenaDNA (fine-tuning)",
+                    "HyenaDNA - Inference": "HyenaDNA (inference)"
+                    #"Evo 2": "Evo 2"
                 },
                 label="Helical Applications",
                 value="Cell type"
@@ -185,6 +186,12 @@ async def handle_upload(e):
 
 def plot_results(data):
         result_zone.clear()  # Clear previous results
+
+        with result_zone:
+            ui.button("Back to Application", 
+                    on_click=lambda: (result_zone.clear(), application_panel.style("display: flex"), tabs_zone.style("display: flex")),
+                    icon="arrow_back").props("color=black").classes("mb-4")
+            
         match state.application:
             case "Cell type":
                 # Assuming data is a DataFrame with columns as cell types and rows as samples
@@ -203,7 +210,7 @@ def plot_results(data):
                     ui.image(f'data:image/png;base64,{img_base64}').style("max-width: 100%; height: auto;").classes("w-full")
             case "HyenaDNA - Inference":
                 plt.figure(figsize=(10,7))
-                sns.heatmap(cm, annot=True, fmt='d')
+                sns.heatmap(data, annot=True, fmt='d')
                 plt.xlabel('Predicted')
                 plt.ylabel('Truth')
                 buf = io.BytesIO()
@@ -215,13 +222,28 @@ def plot_results(data):
                     ui.markdown("## Results").classes("text-lg font-medium")
                     # Display the image
                     ui.image(f'data:image/png;base64,{img_base64}').style("max-width: 100%; height: auto;").classes("w-full")
-            
+            case "Geneformer VS TranscriptFormer":
+                df = pd.DataFrame(data['data'])
+                df['Cell Type'] = df['assigned_label'].to_list()
+
+                fig, ax = plt.subplots(figsize=(7, 5))
+                sns.scatterplot(data=df, x='x',y='y',hue='Cell Type',sizes=(25,100),ax=ax,palette="pastel")
+                ax.set_title('UMAP of Reference Data with labels')
+                buf = io.BytesIO()
+                plt.savefig(buf, format='png')
+                plt.close(fig)
+                buf.seek(0)
+                img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                with result_zone:
+                    ui.markdown("## Results").classes("text-lg font-medium")
+                    # Display the image
+                    ui.image(f'data:image/png;base64,{img_base64}').style("max-width: 50%; height: auto;").classes("w-full")
 
 async def run_application(application_name):
     tabs_zone.style("display: none")  # Hide tabs during processing
     application_panel.style("display: none")  # Show application panel
     # Simulate application logic
-    
+    state.application = application_name
     if state.model is None:
         ui.notify("No model set! Please set a model first.", type="negative")
         return
