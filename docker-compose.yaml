@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:8080"  # NiceGUI default port
+    environment:
+      - FASTAPI_URL=http://main_server:8000  # Internal Docker DNS
+    depends_on:
+      - main_server
+    volumes:
+      - ./frontend:/app  # For development (hot-reload)
+      - /app/node_modules  # Isolate node dependencies
+
+  main_server:
+    build: ./server
+    ports:
+      - "8000:8000"
+    environment:
+      - SERVICE1_URL=http://service1:8001
+      - SERVICE2_URL=http://service2:8002
+      - SERVICE3_URL=http://service3:8006
+    depends_on:
+      - service1
+      - service2
+      - service3
+
+  service1:
+    build: ./server/service1
+    ports:
+      - "8001:8001"
+
+  service2:
+    build: ./server/service2
+    ports:
+      - "8002:8002"
+
+  service3:
+    build: ./server/service3
+    ports:
+      - "8006:8006"
+
+# Optional for production
+volumes:
+  frontend_data:
+  api_data:
