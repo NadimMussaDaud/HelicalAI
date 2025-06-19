@@ -187,6 +187,7 @@ async def handle_upload(e):
 def plot_results(data):
         result_zone.clear()  # Clear previous results
 
+
         with result_zone:
             ui.button("Back to Application", 
                     on_click=lambda: (result_zone.clear(), application_panel.style("display: flex"), tabs_zone.style("display: flex")),
@@ -224,7 +225,6 @@ def plot_results(data):
                     ui.image(f'data:image/png;base64,{img_base64}').style("max-width: 100%; height: auto;").classes("w-full")
             case "Geneformer VS TranscriptFormer":
                 df = pd.DataFrame(data['data'])
-                df['Cell Type'] = df['assigned_label'].to_list()
 
                 fig, ax = plt.subplots(figsize=(7, 5))
                 sns.scatterplot(data=df, x='x',y='y',hue='Cell Type',sizes=(25,100),ax=ax,palette="pastel")
@@ -251,7 +251,7 @@ async def run_application(application_name):
         ui.notify("No dataset loaded! Please upload a dataset first.", type="negative")
         return
     
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=60) as client:
         response = await client.post(
             f"{SERVER_URL}/run",
             json={
