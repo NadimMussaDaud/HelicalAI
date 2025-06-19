@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies (NiceGUI + HTTP client)
-RUN pip install nicegui httpx pandas matplotlib seaborn requests base64 io
+RUN pip install nicegui httpx pandas matplotlib seaborn requests base64 io os
 
 # Expose port 8080 (NiceGUI default)
 EXPOSE 8080

@@ -9,6 +9,12 @@ from datasets import load_dataset
 
 from pydantic import BaseModel
 
+SERVICE1_URL = os.getenv("SERVICE1_URL", "http://localhost:8001")  # Dev fallback
+SERVICE2_URL = os.getenv("SERVICE2_URL", "http://localhost:8002")
+SERVICE3_URL = os.getenv("SERVICE3_URL", "http://localhost:8006")
+
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/app/uploads")
+
 class Dataset(BaseModel):
     name: str
 
@@ -36,7 +42,7 @@ async def run_application(request: State):
             print("Running Cell type application")
             async with httpx.AsyncClient(timeout=60) as client:
                 response = await client.post(
-                    "http://localhost:8001/predict",
+                    f"{SERVICE1_URL}/predict",
                     json={
                         "model_name": request.model_name,
                         "dataset_name": request.dataset_name,
@@ -46,7 +52,7 @@ async def run_application(request: State):
         case "Cell type - fine tuning":
             async with httpx.AsyncClient(timeout=60) as client:
                 response = await client.post(
-                    "http://localhost:8002/run",
+                    f"http://localhost:8011/run",
                     json={
                         "model_name": request.model_name,
                         "dataset_name": request.dataset_name,
@@ -86,7 +92,7 @@ async def run_application(request: State):
         case "Geneformer VS TranscriptFormer":
             async with httpx.AsyncClient(timeout=60) as client:
                 response = await client.post(
-                    "http://localhost:8006/predict",
+                    f"{SERVICE3_URL}/predict",
                     json={
                         "model_name": request.model_name,
                         "dataset_name": request.dataset_name,
@@ -106,7 +112,7 @@ async def run_application(request: State):
         case "HyenaDNA - Inference":
             async with httpx.AsyncClient(timeout=60) as client:
                 response = await client.post(
-                    "http://localhost:8002/predict",
+                    f"{SERVICE2_URL}/predict",
                     json={
                         "model_name": request.model_name,
                         "dataset_name": request.dataset_name,
@@ -144,8 +150,8 @@ async def dataset(request: Dataset):
 
 @app.post("/upload_file")
 async def upload_file(file: UploadFile = File(...)):
-    save_path = f"/workspaces/HelicalAI/datasets/{file.filename}"
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    save_path = os.path.join(UPLOAD_DIR, file.filename)
     content = await file.read()
     with open(save_path, "wb") as f:
         f.write(content)

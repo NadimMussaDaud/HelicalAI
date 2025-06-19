@@ -4,10 +4,12 @@ import requests
 import httpx
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 import base64
 import io
 
-url = "http://localhost:8000/dataset"
+SERVER_URL = os.getenv("SERVER_URL", "http://localhost:8000")
+url = f"{SERVER_URL}/dataset"
 
 with ui.column().classes("items-center justify-center w-full"):
     ui.markdown("# Helical Workflow Interface").classes("text-center w-full")
@@ -171,7 +173,7 @@ async def handle_upload(e):
     # Enviar manualmente para o backend
     files = {'file': (filename, file, e.type)}
     async with httpx.AsyncClient() as client:
-        response = await client.post('http://localhost:8000/upload_file', files=files)
+        response = await client.post(f"{SERVER_URL}/upload_file", files=files)
     if response.status_code == 200:
         ui.notify(f'File {filename} uploaded successfully!')
         state.dataset = filename  # Update state with the uploaded filename
@@ -229,7 +231,7 @@ async def run_application(application_name):
     
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "http://localhost:8000/run",
+            f"{SERVER_URL}/run",
             json={
                 "model_name": state.model,
                 "application_name": application_name,
