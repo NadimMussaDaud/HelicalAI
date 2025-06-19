@@ -17,5 +17,5 @@ Demo user-interface project for HelicalAI package
 
 3. **Access the application:**
 
-    Abra [http://localhost:8000](http://localhost:8000) no seu navegador.
+    Open [http://localhost:8000](http://localhost:8000) in your browser.
 
