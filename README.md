@@ -46,10 +46,10 @@ Demo user-interface project for HelicalAI package
    <img width="1071" alt="Captura de ecrã 2025-06-23, às 15 05 01" src="https://github.com/user-attachments/assets/d805d3a0-723a-43d5-b2b9-c1ac88199115" />
 
 
-### TODO:
+### Suggestions and Improvements:
 1. Upload data directly to backend
-2. Add OAuth
-3. Store current users history and display it.
+2. Add OAuth for storing user activities
+3. Store current users history and display it (Data and Model Training relation).
 
 
 
