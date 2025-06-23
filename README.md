@@ -48,8 +48,8 @@ Demo user-interface project for HelicalAI package
 
 ### TODO:
 1. Upload data directly to backend
-2. Simulate train model instead of just setting sending user precision and so on...
-3. Store current users hostory and display it.
+2. Add OAuth
+3. Store current users history and display it.
 
 
 
