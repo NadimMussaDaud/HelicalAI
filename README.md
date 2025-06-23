@@ -46,6 +46,12 @@ Demo user-interface project for HelicalAI package
    <img width="1071" alt="Captura de ecrã 2025-06-23, às 15 05 01" src="https://github.com/user-attachments/assets/d805d3a0-723a-43d5-b2b9-c1ac88199115" />
 
 
+###TODO:
+1. Upload data directly to backend
+2. Simulate train model instead of just setting sending user precision and so on...
+3. Store current users hostory and display it.
+
+
 
 
 
